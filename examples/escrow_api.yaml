@@ -1,0 +1,67 @@
+# Example contract for a mock escrow/GraphQL-style Stellar backend.
+# Run against examples/mock_server.py:
+#
+#   uvicorn examples.mock_server:app --port 8000 &
+#   schemalock test --config examples/escrow_api.yaml --base-url http://127.0.0.1:8000 \
+#       --auth-header "Authorization: Bearer valid-token"
+
+name: "Escrow API contract"
+base_url: "http://127.0.0.1:8000"
+auth_header: "Authorization: Bearer valid-token"
+
+error_envelopes:
+  standard:
+    required_fields: ["error", "message", "code"]
+    field_types:
+      error: "boolean"
+      message: "string"
+      code: "string"
+
+endpoints:
+  - name: create_escrow
+    method: POST
+    path: /escrows
+    auth_required: true
+    body:
+      amount: 500
+    expect:
+      status: 201
+
+  - name: get_existing_escrow
+    method: GET
+    path: /escrows/{id}
+    path_params:
+      id: esc_123
+    auth_required: true
+    expect:
+      status: 200
+
+  - name: get_missing_escrow_is_404_not_leaked
+    method: GET
+    path: /escrows/{id}
+    path_params:
+      id: does-not-exist
+    auth_required: true
+    expect:
+      status: 404
+      error_envelope: standard
+
+  - name: delete_non_pending_escrow_returns_409
+    method: DELETE
+    path: /escrows/{id}
+    path_params:
+      id: esc_123
+    auth_required: true
+    expect:
+      status: [204, 409]  # 204 first run, 409 acceptable on repeat/non-pending state
+      error_envelope: standard
+
+  - name: graphql_validation_error_is_422
+    method: POST
+    path: /graphql
+    auth_required: true
+    body:
+      query: "{ escrow { invalidField } }"
+    expect:
+      status: 422
+      error_envelope: standard
