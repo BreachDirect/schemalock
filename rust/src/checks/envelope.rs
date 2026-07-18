@@ -1,0 +1,104 @@
+//! Check: error responses keep a stable envelope shape (required fields + types).
+//! Forgiving on extra/additive fields; strict on missing fields or type drift.
+
+use crate::checks::{CheckResult, Outcome};
+use crate::config::{Endpoint, ErrorEnvelope};
+use serde_json::Value;
+
+fn type_ok(value: &Value, type_name: &str) -> bool {
+    match type_name {
+        "string" => value.is_string(),
+        "number" => value.is_number(),
+        "boolean" => value.is_boolean(),
+        "object" => value.is_object(),
+        "array" => value.is_array(),
+        "null" => value.is_null(),
+        _ => true,
+    }
+}
+
+pub fn check_error_envelope(
+    endpoint: &Endpoint,
+    envelope: &ErrorEnvelope,
+    body_text: &str,
+) -> CheckResult {
+    let check_name = "error_envelope".to_string();
+
+    let body: Value = match serde_json::from_str(body_text) {
+        Ok(v) => v,
+        Err(_) => {
+            return CheckResult {
+                endpoint: endpoint.name.clone(),
+                check: check_name,
+                outcome: Outcome::Fail,
+                detail: "response body is not valid JSON; error envelope cannot be checked"
+                    .to_string(),
+            };
+        }
+    };
+
+    let Some(obj) = body.as_object() else {
+        let got = match &body {
+            Value::Array(_) => "array",
+            Value::String(_) => "string",
+            Value::Number(_) => "number",
+            Value::Bool(_) => "boolean",
+            Value::Null => "null",
+            Value::Object(_) => unreachable!(),
+        };
+        return CheckResult {
+            endpoint: endpoint.name.clone(),
+            check: check_name,
+            outcome: Outcome::Fail,
+            detail: format!(
+                "expected a JSON object for envelope '{}', got {got}",
+                envelope.name
+            ),
+        };
+    };
+
+    let missing: Vec<&String> = envelope
+        .required_fields
+        .iter()
+        .filter(|f| !obj.contains_key(*f))
+        .collect();
+    if !missing.is_empty() {
+        return CheckResult {
+            endpoint: endpoint.name.clone(),
+            check: check_name,
+            outcome: Outcome::Fail,
+            detail: format!(
+                "envelope '{}' missing required field(s): {:?}",
+                envelope.name, missing
+            ),
+        };
+    }
+
+    let mut type_errors = Vec::new();
+    for (fname, ftype) in &envelope.field_types {
+        if let Some(value) = obj.get(fname) {
+            if !type_ok(value, ftype) {
+                type_errors.push(format!("{fname}: expected {ftype}, got a different type"));
+            }
+        }
+    }
+    if !type_errors.is_empty() {
+        return CheckResult {
+            endpoint: endpoint.name.clone(),
+            check: check_name,
+            outcome: Outcome::Fail,
+            detail: format!(
+                "envelope '{}' field type drift: {}",
+                envelope.name,
+                type_errors.join("; ")
+            ),
+        };
+    }
+
+    CheckResult {
+        endpoint: endpoint.name.clone(),
+        check: check_name,
+        outcome: Outcome::Pass,
+        detail: format!("envelope '{}' shape stable", envelope.name),
+    }
+}

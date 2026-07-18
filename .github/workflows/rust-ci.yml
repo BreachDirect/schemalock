@@ -1,0 +1,65 @@
+name: Rust CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "rust/**"
+      - ".github/workflows/rust-ci.yml"
+  pull_request:
+    paths:
+      - "rust/**"
+      - ".github/workflows/rust-ci.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            rust/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('rust/Cargo.lock') }}
+
+      - name: Set up Python (for the shared mock server used by e2e tests)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python deps (mock server only)
+        run: pip install -e ".[dev]"
+
+      - name: Build (locked to committed Cargo.lock)
+        working-directory: rust
+        run: cargo build --locked
+
+      - name: Run test suite (unit + e2e against the shared mock server)
+        working-directory: rust
+        run: cargo test --locked
+
+      - name: Smoke test — CLI against bundled example (correct contract)
+        run: |
+          uvicorn examples.mock_server:app --port 8010 &
+          for i in $(seq 1 20); do curl -sf http://127.0.0.1:8010/health && break; sleep 0.5; done
+          ./rust/target/debug/schemalock test --config examples/escrow_api.yaml --base-url http://127.0.0.1:8010
+
+      - name: Smoke test — CLI catches a broken contract (must fail)
+        run: |
+          pkill -f "uvicorn examples.mock_server" || true
+          sleep 1
+          MOCK_BREAK_CONTRACT=1 uvicorn examples.mock_server:app --port 8011 &
+          for i in $(seq 1 20); do curl -sf http://127.0.0.1:8011/health && break; sleep 0.5; done
+          if ./rust/target/debug/schemalock test --config examples/escrow_api.yaml --base-url http://127.0.0.1:8011; then
+            echo "expected SchemaLock (Rust) to fail against a broken contract, but it passed" >&2
+            exit 1
+          else
+            echo "confirmed: SchemaLock (Rust) correctly failed against the broken contract"
+          fi

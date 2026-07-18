@@ -87,7 +87,20 @@ schemalock test --config <path> --base-url <url>
 Exit code is `0` if every check passes, `1` otherwise — drop it straight into
 a CI step.
 
+## Implementations
+
+This repo ships two behaviorally-equivalent Phase 1 implementations, both
+validated against the same example fixture (`examples/escrow_api.yaml` +
+`examples/mock_server.py`):
+
+- **Python** (this directory) — the canonical implementation, `httpx` + `PyYAML`.
+- **Rust** (`rust/`) — a parallel port for zero-runtime, single-binary CI use.
+  See [`rust/README.md`](./rust/README.md) for build instructions and a known
+  toolchain-related limitation (no TLS yet, easily lifted on a modern Rust
+  toolchain).
+
 ## Project docs
+
 
 - [`PRD.md`](./PRD.md) — problem statement, scope, and success criteria.
 - [`ARCHITECTURE.md`](./ARCHITECTURE.md) — module layout and design rationale.
