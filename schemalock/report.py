@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import json
-from typing import List
 
 from schemalock.checks import CheckResult, Outcome
 
 _SYMBOL = {Outcome.PASS: "PASSED", Outcome.FAIL: "FAILED", Outcome.ERROR: "ERROR "}
 
 
-def render_console(config_name: str, results: List[CheckResult]) -> str:
+def render_console(config_name: str, results: list[CheckResult]) -> str:
     lines = [f"SchemaLock — {config_name}", ""]
     for r in results:
         lines.append(f"{_SYMBOL[r.outcome]}  {r.endpoint} :: {r.check} — {r.detail}")
@@ -26,7 +25,7 @@ def render_console(config_name: str, results: List[CheckResult]) -> str:
     return "\n".join(lines)
 
 
-def render_json(config_name: str, results: List[CheckResult], path: str) -> None:
+def render_json(config_name: str, results: list[CheckResult], path: str) -> None:
     payload = {
         "config_name": config_name,
         "summary": {
@@ -41,5 +40,5 @@ def render_json(config_name: str, results: List[CheckResult], path: str) -> None
         json.dump(payload, fh, indent=2)
 
 
-def exit_code(results: List[CheckResult]) -> int:
+def exit_code(results: list[CheckResult]) -> int:
     return 0 if all(r.outcome == Outcome.PASS for r in results) else 1

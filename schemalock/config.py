@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import yaml
 
@@ -18,8 +18,8 @@ class ConfigError(Exception):
 @dataclass
 class ErrorEnvelope:
     name: str
-    required_fields: List[str] = field(default_factory=list)
-    field_types: Dict[str, str] = field(default_factory=dict)
+    required_fields: list[str] = field(default_factory=list)
+    field_types: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass
@@ -27,13 +27,13 @@ class Endpoint:
     name: str
     method: str
     path: str
-    body: Optional[dict] = None
+    body: dict | None = None
     auth_required: bool = False
-    expect_status: Union[int, List[int]] = 200
-    expect_envelope: Optional[str] = None
-    path_params: Dict[str, str] = field(default_factory=dict)
+    expect_status: int | list[int] = 200
+    expect_envelope: str | None = None
+    path_params: dict[str, str] = field(default_factory=dict)
 
-    def acceptable_statuses(self) -> List[int]:
+    def acceptable_statuses(self) -> list[int]:
         if isinstance(self.expect_status, int):
             return [self.expect_status]
         return list(self.expect_status)
@@ -48,10 +48,10 @@ class Endpoint:
 @dataclass
 class Config:
     name: str
-    base_url: Optional[str]
-    auth_header: Optional[str]
-    error_envelopes: Dict[str, ErrorEnvelope]
-    endpoints: List[Endpoint]
+    base_url: str | None
+    auth_header: str | None
+    error_envelopes: dict[str, ErrorEnvelope]
+    endpoints: list[Endpoint]
 
 
 def _require(d: Any, key: str, path: str, expected_type=None):
@@ -67,13 +67,13 @@ def _require(d: Any, key: str, path: str, expected_type=None):
     return value
 
 
-def _parse_error_envelopes(raw: Any, path: str) -> Dict[str, ErrorEnvelope]:
+def _parse_error_envelopes(raw: Any, path: str) -> dict[str, ErrorEnvelope]:
     if raw is None:
         return {}
     if not isinstance(raw, dict):
         raise ConfigError(f"{path}: expected a mapping of envelope_name -> spec")
 
-    envelopes: Dict[str, ErrorEnvelope] = {}
+    envelopes: dict[str, ErrorEnvelope] = {}
     for name, spec in raw.items():
         spec = spec or {}
         if not isinstance(spec, dict):
@@ -95,7 +95,7 @@ def _parse_error_envelopes(raw: Any, path: str) -> Dict[str, ErrorEnvelope]:
     return envelopes
 
 
-def _parse_endpoint(raw: Any, idx: int, known_envelopes: Dict[str, ErrorEnvelope]) -> Endpoint:
+def _parse_endpoint(raw: Any, idx: int, known_envelopes: dict[str, ErrorEnvelope]) -> Endpoint:
     path = f"endpoints[{idx}]"
     if not isinstance(raw, dict):
         raise ConfigError(f"{path}: expected a mapping")

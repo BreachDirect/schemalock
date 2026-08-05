@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import List, Optional
-
 import httpx
 
 from schemalock.checks import CheckResult, Outcome
@@ -13,7 +11,7 @@ from schemalock.checks.status_patterns import check_status
 from schemalock.config import Config
 
 
-def _parse_auth_header(raw: Optional[str]) -> dict:
+def _parse_auth_header(raw: str | None) -> dict:
     """Parses a "Header-Name: value" string into a headers dict. Empty if None."""
     if not raw:
         return {}
@@ -27,8 +25,8 @@ class Runner:
     def __init__(
         self,
         config: Config,
-        base_url: Optional[str] = None,
-        auth_header: Optional[str] = None,
+        base_url: str | None = None,
+        auth_header: str | None = None,
         timeout: float = 10.0,
     ):
         self.config = config
@@ -38,8 +36,8 @@ class Runner:
         self.auth_header = auth_header or config.auth_header
         self.timeout = timeout
 
-    def run(self) -> List[CheckResult]:
-        results: List[CheckResult] = []
+    def run(self) -> list[CheckResult]:
+        results: list[CheckResult] = []
         headers = _parse_auth_header(self.auth_header)
 
         with httpx.Client() as client:
