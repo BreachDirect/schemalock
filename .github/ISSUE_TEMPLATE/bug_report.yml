@@ -1,0 +1,56 @@
+name: Bug report
+description: Report a bug in SchemaLock
+title: "[bug]: "
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report.
+  - type: dropdown
+    id: lang
+    attributes:
+      label: Implementation
+      options:
+        - Python (schemalock package)
+        - Rust (rust/ crate)
+        - Both
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Commit hash, tag, or package/crate version
+      placeholder: "main@abc1234 or v0.1.0"
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Config YAML, target URL, and the command you ran
+      placeholder: |
+        `schemalock test --config schemalock.yaml --base-url https://...`
+        ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs actual behaviour
+      description: Include exit codes and relevant output (console or --json-report)
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Impact
+      options:
+        - False pass (missed contract regression)
+        - False fail (spurious failure)
+        - Crash / panic
+        - Broken report output (console/JSON)
+        - Other
+    validations:
+      required: true

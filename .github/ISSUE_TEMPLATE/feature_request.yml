@@ -1,0 +1,42 @@
+name: Feature request
+description: Suggest a new check, feature, or improvement for SchemaLock
+title: "[feature]: "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to share an idea.
+  - type: dropdown
+    id: type
+    attributes:
+      label: Request type
+      options:
+        - New contract check
+        - CLI / output improvement
+        - CI / integration improvement
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What are you trying to solve? Focus on the problem, not the solution.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed approach
+      description: How should SchemaLock address it? Link related issues or docs.
+  - type: checkboxes
+    id: roadmap
+    attributes:
+      label: Already on the roadmap?
+      description: Please check [PRD.md](PRD.md) first.
+      options:
+        - label: I checked the PRD and this is not already planned
+    validations:
+      required: true

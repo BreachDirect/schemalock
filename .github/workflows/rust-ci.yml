@@ -12,6 +12,28 @@ on:
       - ".github/workflows/rust-ci.yml"
 
 jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Check formatting
+        working-directory: rust
+        run: cargo fmt --all -- --check
+
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - name: Lint with warnings denied
+        working-directory: rust
+        run: cargo clippy --all-targets -- -D warnings
+
   test:
     runs-on: ubuntu-latest
 

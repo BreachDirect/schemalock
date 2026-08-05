@@ -38,21 +38,13 @@ boots the shared Python mock server (requires `python3` + the root project's
 against it — the same regressions (leaked-404-as-200, renamed envelope field)
 that the Python e2e test catches, this test catches too.
 
-## Known limitation: HTTP only, no TLS (for now)
+## HTTPS support
 
-This crate currently builds **without** a TLS backend — `https://` targets
-will fail. This is a toolchain artifact, not a design choice: the sandbox this
-was built in only has `apt`'s Rust 1.75 available (no `rustup` access), and
-recent `native-tls`/`rustls` releases require Rust 1.80+. Several transitive
-dependencies are pinned to older versions in `Cargo.toml` specifically to stay
-buildable on 1.75.
-
-**On a normal machine or in GitHub Actions with a current stable Rust
-toolchain (1.80+), this is trivial to lift**: relax the exact-pinned
-dependency versions back to normal ranges and add back
-`features = ["json", "native-tls"]` (or `"tls"` for rustls) to the `ureq`
-dependency in `Cargo.toml`. No application code changes are needed — the
-limitation is entirely in the dependency graph, not in `runner.rs`/`auth.rs`.
+The Rust binary builds with a rustls TLS backend (the `tls` feature on `ureq`),
+so `https://` targets work out of the box — no OpenSSL required. The original
+sandbox that produced this port only had an old `apt` Rust (1.75), which forced
+temporary exact pins on `ureq` and dropped TLS; those pins are gone and TLS is
+now enabled by default.
 
 ## What's ported vs. what isn't (yet)
 
@@ -65,5 +57,5 @@ limitation is entirely in the dependency graph, not in `runner.rs`/`auth.rs`.
 | `runner.py` | `src/runner.rs` | ✅ |
 | `report.py` | `src/report.rs` | ✅ (console + JSON, same shape) |
 | `cli.py` | `src/main.rs` | ✅ same `test` subcommand and flags |
-| HTTPS support | — | ⚠️ pending a modern toolchain, see above |
+| HTTPS support | — | ✅ rustls (`ureq` feature `tls`) |
 | pytest plugin / GitHub Action | — | Not yet ported either language (Phase 2/3) |

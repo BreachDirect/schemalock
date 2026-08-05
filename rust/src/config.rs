@@ -137,7 +137,11 @@ fn parse_error_envelopes(
         }
         out.insert(
             name.clone(),
-            ErrorEnvelope { name, required_fields, field_types },
+            ErrorEnvelope {
+                name,
+                required_fields,
+                field_types,
+            },
         );
     }
     Ok(out)
@@ -174,7 +178,9 @@ fn parse_endpoint(
 ) -> Result<Endpoint, ConfigError> {
     let path = format!("endpoints[{idx}]");
 
-    let name = raw.name.ok_or_else(|| err(&path, "name: missing required field"))?;
+    let name = raw
+        .name
+        .ok_or_else(|| err(&path, "name: missing required field"))?;
     let method = raw
         .method
         .ok_or_else(|| err(&path, "method: missing required field"))?
@@ -185,7 +191,9 @@ fn parse_endpoint(
             &format!("'{method}' must be one of {VALID_METHODS:?}"),
         ));
     }
-    let ep_path = raw.path.ok_or_else(|| err(&path, "path: missing required field"))?;
+    let ep_path = raw
+        .path
+        .ok_or_else(|| err(&path, "path: missing required field"))?;
 
     let expect = raw
         .expect
@@ -193,7 +201,8 @@ fn parse_endpoint(
     let status_value = expect
         .status
         .ok_or_else(|| err(&format!("{path}.expect.status"), "missing required field"))?;
-    let expect_status = yaml_status_to_expectation(&status_value, &format!("{path}.expect.status"))?;
+    let expect_status =
+        yaml_status_to_expectation(&status_value, &format!("{path}.expect.status"))?;
 
     let envelope_name = expect.error_envelope;
     if let Some(ref en) = envelope_name {
@@ -218,7 +227,9 @@ fn parse_endpoint(
 }
 
 pub fn parse_config(raw: ConfigRaw) -> Result<Config, ConfigError> {
-    let name = raw.name.unwrap_or_else(|| "SchemaLock contract".to_string());
+    let name = raw
+        .name
+        .unwrap_or_else(|| "SchemaLock contract".to_string());
     let error_envelopes = parse_error_envelopes(raw.error_envelopes)?;
 
     let raw_endpoints = raw

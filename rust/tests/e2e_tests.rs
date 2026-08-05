@@ -47,7 +47,10 @@ impl MockServer {
                 &port.to_string(),
             ])
             .current_dir(repo_root())
-            .env("MOCK_BREAK_CONTRACT", if break_contract { "1" } else { "0" })
+            .env(
+                "MOCK_BREAK_CONTRACT",
+                if break_contract { "1" } else { "0" },
+            )
             .stdout(Stdio::null())
             .stderr(Stdio::null())
             .spawn()

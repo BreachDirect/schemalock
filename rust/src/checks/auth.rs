@@ -13,7 +13,11 @@ pub fn check_auth_required(
     _timeout: Duration,
 ) -> CheckResult {
     let check_name = "auth_required".to_string();
-    let url = format!("{}{}", base_url.trim_end_matches('/'), endpoint.resolved_path());
+    let url = format!(
+        "{}{}",
+        base_url.trim_end_matches('/'),
+        endpoint.resolved_path()
+    );
 
     let req = agent.request(&endpoint.method, &url);
 
@@ -56,5 +60,10 @@ pub fn check_auth_required(
         format!("unauthenticated request returned {status} — expected 401 or 403")
     };
 
-    CheckResult { endpoint: endpoint.name.clone(), check: check_name, outcome: Outcome::Fail, detail }
+    CheckResult {
+        endpoint: endpoint.name.clone(),
+        check: check_name,
+        outcome: Outcome::Fail,
+        detail,
+    }
 }

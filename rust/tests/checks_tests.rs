@@ -18,7 +18,12 @@ endpoints:
 "#
     );
     let raw: ConfigRaw = serde_yaml::from_str(&yaml).unwrap();
-    parse_config(raw).unwrap().endpoints.into_iter().next().unwrap()
+    parse_config(raw)
+        .unwrap()
+        .endpoints
+        .into_iter()
+        .next()
+        .unwrap()
 }
 
 #[test]
@@ -50,7 +55,11 @@ fn standard_envelope() -> ErrorEnvelope {
     field_types.insert("code".to_string(), "string".to_string());
     ErrorEnvelope {
         name: "standard".to_string(),
-        required_fields: vec!["error".to_string(), "message".to_string(), "code".to_string()],
+        required_fields: vec![
+            "error".to_string(),
+            "message".to_string(),
+            "code".to_string(),
+        ],
         field_types,
     }
 }

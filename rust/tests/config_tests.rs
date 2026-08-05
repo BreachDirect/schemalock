@@ -103,7 +103,10 @@ endpoints:
       error_envelope: standard
 "#;
     let cfg = parse(yaml).expect("should parse");
-    assert_eq!(cfg.endpoints[0].expect_envelope.as_deref(), Some("standard"));
+    assert_eq!(
+        cfg.endpoints[0].expect_envelope.as_deref(),
+        Some("standard")
+    );
     assert_eq!(
         cfg.error_envelopes["standard"].required_fields,
         vec!["error".to_string(), "message".to_string()]

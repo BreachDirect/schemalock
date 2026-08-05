@@ -2,6 +2,12 @@
 
 **Declarative API contract test harness for Stellar backend services.**
 
+![Python CI](https://github.com/BreachDirect/schemalock/actions/workflows/ci.yml/badge.svg)
+![Rust CI](https://github.com/BreachDirect/schemalock/actions/workflows/rust-ci.yml/badge.svg)
+![Python](https://img.shields.io/badge/python-3.9+-blue)
+![Rust](https://img.shields.io/badge/rust-1.86+-orange)
+![License](https://img.shields.io/badge/license-MIT-blue)
+
 Stellar Wave backends (escrow services, marketplaces, trust/reputation APIs)
 keep shipping the same two classes of regression: error response shapes
 drifting between releases, and auth boundaries that silently stop being
@@ -95,9 +101,7 @@ validated against the same example fixture (`examples/escrow_api.yaml` +
 
 - **Python** (this directory) — the canonical implementation, `httpx` + `PyYAML`.
 - **Rust** (`rust/`) — a parallel port for zero-runtime, single-binary CI use.
-  See [`rust/README.md`](./rust/README.md) for build instructions and a known
-  toolchain-related limitation (no TLS yet, easily lifted on a modern Rust
-  toolchain).
+  Builds with rustls TLS (HTTPS supported). See [`rust/README.md`](./rust/README.md).
 
 ## Project docs
 
@@ -113,7 +117,7 @@ matrices, and historical drift reporting — are tracked as issues in this repo.
 
 ## Wave alignment
 
-Built for **Stellar Wave 7** as a standalone, reusable open-source dependency —
+Built for **Stellar Wave 8** as a standalone, reusable open-source dependency —
 not tied to any single org's private codebase — so any Wave-funded backend can
 adopt it directly or as a CI step.
 

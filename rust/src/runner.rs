@@ -38,7 +38,12 @@ impl Runner {
                 RunnerError("base_url must be provided via --base-url or config.base_url".into())
             })?;
         let auth_header = auth_header.or_else(|| config.auth_header.clone());
-        Ok(Self { config, base_url, auth_header, timeout })
+        Ok(Self {
+            config,
+            base_url,
+            auth_header,
+            timeout,
+        })
     }
 
     pub fn run(&self) -> Result<Vec<CheckResult>, RunnerError> {
@@ -94,7 +99,12 @@ impl Runner {
             }
 
             if endpoint.auth_required {
-                results.push(check_auth_required(endpoint, &agent, &self.base_url, self.timeout));
+                results.push(check_auth_required(
+                    endpoint,
+                    &agent,
+                    &self.base_url,
+                    self.timeout,
+                ));
             }
         }
 
