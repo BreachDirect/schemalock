@@ -103,6 +103,16 @@ validated against the same example fixture (`examples/escrow_api.yaml` +
 - **Rust** (`rust/`) — a parallel port for zero-runtime, single-binary CI use.
   Builds with rustls TLS (HTTPS supported). See [`rust/README.md`](./rust/README.md).
 
+The equivalence claim is enforced by a CI parity gate
+([`scripts/parity_check.py`](./scripts/parity_check.py)): it runs both CLIs
+against the same mock server — correct contract and broken contract — and
+asserts their JSON reports are byte-identical. Any drift between the two
+implementations fails CI:
+
+```bash
+python3 scripts/parity_check.py --rust-binary rust/target/debug/schemalock
+```
+
 ## Project docs
 
 

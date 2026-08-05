@@ -55,3 +55,35 @@ jobs:
         with:
           name: schemalock-report-${{ matrix.python-version }}
           path: report.json
+
+  parity:
+    name: Cross-language parity (Python vs Rust)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install SchemaLock (dev deps incl. mock server)
+        run: pip install -e ".[dev]"
+
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            rust/target
+          key: ${{ runner.os }}-cargo-parity-${{ hashFiles('rust/Cargo.lock') }}
+
+      - name: Build Rust binary (locked to committed Cargo.lock)
+        working-directory: rust
+        run: cargo build --locked
+
+      - name: Verify Python and Rust reports are identical
+        run: python3 scripts/parity_check.py --rust-binary rust/target/debug/schemalock

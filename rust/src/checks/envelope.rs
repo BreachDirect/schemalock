@@ -5,6 +5,25 @@ use crate::checks::{CheckResult, Outcome};
 use crate::config::{Endpoint, ErrorEnvelope};
 use serde_json::Value;
 
+/// Maps a serde_json::Value to the equivalent Python `type(...).__name__` so the
+/// type-drift detail string matches the Python implementation exactly.
+fn py_type_name(value: &Value) -> &'static str {
+    match value {
+        Value::Null => "NoneType",
+        Value::Bool(_) => "bool",
+        Value::Number(n) => {
+            if n.is_i64() || n.is_u64() {
+                "int"
+            } else {
+                "float"
+            }
+        }
+        Value::String(_) => "str",
+        Value::Array(_) => "list",
+        Value::Object(_) => "dict",
+    }
+}
+
 fn type_ok(value: &Value, type_name: &str) -> bool {
     match type_name {
         "string" => value.is_string(),
@@ -63,13 +82,18 @@ pub fn check_error_envelope(
         .filter(|f| !obj.contains_key(*f))
         .collect();
     if !missing.is_empty() {
+        let missing_list = missing
+            .iter()
+            .map(|f| format!("'{f}'"))
+            .collect::<Vec<_>>()
+            .join(", ");
         return CheckResult {
             endpoint: endpoint.name.clone(),
             check: check_name,
             outcome: Outcome::Fail,
             detail: format!(
-                "envelope '{}' missing required field(s): {:?}",
-                envelope.name, missing
+                "envelope '{}' missing required field(s): [{missing_list}]",
+                envelope.name
             ),
         };
     }
@@ -78,7 +102,10 @@ pub fn check_error_envelope(
     for (fname, ftype) in &envelope.field_types {
         if let Some(value) = obj.get(fname) {
             if !type_ok(value, ftype) {
-                type_errors.push(format!("{fname}: expected {ftype}, got a different type"));
+                type_errors.push(format!(
+                    "{fname}: expected {ftype}, got {}",
+                    py_type_name(value)
+                ));
             }
         }
     }
