@@ -34,6 +34,15 @@ jobs:
         working-directory: rust
         run: cargo clippy --all-targets -- -D warnings
 
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: rustsec/audit-check@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          working-directory: rust
+
   test:
     runs-on: ubuntu-latest
 
