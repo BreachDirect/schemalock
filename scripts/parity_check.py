@@ -71,9 +71,7 @@ def _run_python_cli(port: int, report_path: Path) -> subprocess.CompletedProcess
     )
 
 
-def _run_rust_cli(
-    binary: Path, port: int, report_path: Path
-) -> subprocess.CompletedProcess:
+def _run_rust_cli(binary: Path, port: int, report_path: Path) -> subprocess.CompletedProcess:
     return _run(
         [
             str(binary),
@@ -110,9 +108,7 @@ def _compare(
         errors.append("JSON reports are not identical")
         a = json.dumps(py_json, indent=2, sort_keys=True).splitlines()
         b = json.dumps(rust_json, indent=2, sort_keys=True).splitlines()
-        errors.append(
-            "\n".join(difflib.unified_diff(a, b, "python", "rust", lineterm=""))
-        )
+        errors.append("\n".join(difflib.unified_diff(a, b, "python", "rust", lineterm="")))
 
     if errors:
         print(f"[FAIL] parity mismatch ({label}):", file=sys.stderr)
@@ -165,9 +161,7 @@ def main() -> int:
                 rust_report = Path(tmp) / f"rust_{label.replace(' ', '_')}.json"
                 py_proc = _run_python_cli(port, py_report)
                 rust_proc = _run_rust_cli(binary, port, rust_report)
-                ok = (
-                    _compare(label, py_report, rust_report, py_proc, rust_proc) and ok
-                )
+                ok = _compare(label, py_report, rust_report, py_proc, rust_proc) and ok
             finally:
                 server.terminate()
                 try:

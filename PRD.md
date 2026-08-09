@@ -2,7 +2,7 @@
 
 **Status:** Phase 1 (MVP) — implemented
 **Owner:** BreachDirect
-**Target program:** Stellar Wave 8 — Contributor Track
+**Target program:** Drips Stellar Wave 8 — Contributor Track ([drips.network/wave/stellar](https://www.drips.network/wave/stellar))
 
 ## 1. Problem
 
@@ -92,6 +92,8 @@ Give any Stellar Wave backend team a way to:
 
 ## 8. Wave alignment note
 
-This project targets **Stellar Wave 8**. It is scoped as a standalone, reusable
-open-source tool (not tied to any single Wave org's private codebase) so any
-Wave-funded backend can adopt it as a dependency or CI step.
+This project targets **Drips Stellar Wave 8**
+([drips.network/wave/stellar](https://www.drips.network/wave/stellar)). It is scoped
+as a standalone, reusable open-source tool (not tied to any single Wave org's
+private codebase) so any Wave-funded backend can adopt it as a dependency or CI
+step.

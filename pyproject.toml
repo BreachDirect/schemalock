@@ -21,6 +21,7 @@ dev = [
     "pytest>=8.0",
     "fastapi>=0.110",
     "uvicorn>=0.29",
+    "ruff==0.16.1",
 ]
 
 [project.scripts]
@@ -28,3 +29,22 @@ schemalock = "schemalock.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["schemalock*"]
+
+[tool.ruff]
+target-version = "py39"
+line-length = 100
+src = ["schemalock", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+ignore = ["B008", "B904"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+pythonpath = ["."]

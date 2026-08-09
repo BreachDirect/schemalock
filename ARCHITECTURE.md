@@ -2,10 +2,18 @@
 
 ## 1. Overview
 
-SchemaLock is a small, dependency-light Python CLI. It reads a declarative YAML
-contract, fires HTTP requests at a target backend with `httpx`, runs a fixed set
-of built-in checks against each response, and emits a pass/fail result plus an
-optional JSON report.
+SchemaLock ships **two independent implementations** that consume the same
+declarative YAML contract and must produce identical results:
+
+- **`schemalock/`** — the reference Python implementation. Reads a declarative
+  YAML contract, fires HTTP requests at a target backend with `httpx`, runs a
+  fixed set of built-in checks against each response, and emits a pass/fail
+  result plus an optional JSON report.
+- **`rust/`** — a from-scratch Rust port of the same engine (single static
+  binary, no runtime), kept behaviorally equivalent to Python via the parity
+  gate in §6.
+
+Python flow:
 
 ```
                  ┌────────────────────┐
@@ -96,6 +104,19 @@ optional JSON report.
   line or config, matching the "run in CI, run on a laptop, get the same result"
   requirement.
 
+### `rust/` (Rust port)
+- A dependency-light Cargo crate that reimplements the same pipeline: YAML
+  config → validated config model → `reqwest` HTTP calls → the same three check
+  modules → pytest-style console output and the same JSON report shape.
+- Produces a single static binary (`rust/target/release/schemalock`) so
+  Wave-funded backends written in Rust can gate on contracts without a Python
+  runtime in their image.
+- Check logic lives in `rust/src/checks/` mirroring `schemalock/checks/`, and is
+  exercised by `rust/tests/` (unit + e2e against the same bundled mock server in
+  `examples/`).
+- Behavioral equivalence with Python is enforced by the parity gate (§6), not by
+  a shared codebase.
+
 ## 3. Data model (`schemalock.yaml`)
 
 ```yaml
@@ -141,5 +162,24 @@ endpoints:
 - `tests/` uses real `pytest` to test SchemaLock *itself* (unit tests for config
   parsing and each check module, plus one end-to-end test that boots the mock
   server as a subprocess and runs the CLI against it).
-- CI (`.github/workflows/ci.yml`) runs the same suite on every push/PR, plus a
+- `rust/tests/` mirrors that coverage for the Rust port, including an e2e test
+  against the same mock server.
+- CI (`.github/workflows/ci.yml`) runs the Python suite on every push/PR, plus a
   smoke test that runs the packaged CLI directly against the example config.
+- CI (`.github/workflows/rust-ci.yml`) runs `cargo fmt`/`clippy`/`test`/`audit`
+  on the Rust crate, plus the same smoke tests against the example config.
+- The cross-language parity gate (below) runs on every push/PR in `ci.yml`.
+
+## 6. Cross-language parity gate
+
+Both implementations must produce **identical JSON reports** for the same config
+and target. This is enforced by `scripts/parity_check.py`, which:
+
+1. Boots the bundled mock server from `examples/`.
+2. Runs the Python CLI and the compiled Rust binary against the *same* configs
+   and fixtures (including broken-contract fixtures) with `--json-report`.
+3. Asserts the two reports are byte-for-byte equal.
+
+This gate is what keeps the Rust port honest: any change to check semantics,
+error messages, or report structure in one implementation must be mirrored in
+the other or CI fails.

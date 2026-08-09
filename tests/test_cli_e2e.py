@@ -5,7 +5,6 @@ import sys
 import time
 
 import pytest
-
 from schemalock.cli import main
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

@@ -57,10 +57,7 @@ def check_auth_required(
             "auth boundary is not enforced (possible auth bypass)"
         )
     else:
-        detail = (
-            f"unauthenticated request returned {response.status_code} — "
-            "expected 401 or 403"
-        )
+        detail = f"unauthenticated request returned {response.status_code} — expected 401 or 403"
 
     return CheckResult(
         endpoint=endpoint.name, check=check_name, outcome=Outcome.FAIL, detail=detail

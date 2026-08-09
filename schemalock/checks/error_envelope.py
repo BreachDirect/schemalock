@@ -51,7 +51,9 @@ def check_error_envelope(
             endpoint=endpoint.name,
             check=check_name,
             outcome=Outcome.FAIL,
-            detail=f"expected a JSON object for envelope '{envelope.name}', got {type(body).__name__}",
+            detail=(
+                f"expected a JSON object for envelope '{envelope.name}', got {type(body).__name__}"
+            ),
         )
 
     missing = [f for f in envelope.required_fields if f not in body]
@@ -68,9 +70,7 @@ def check_error_envelope(
         if fname not in body:
             continue  # already caught by required_fields if it mattered
         if not _type_ok(body[fname], ftype):
-            type_errors.append(
-                f"{fname}: expected {ftype}, got {type(body[fname]).__name__}"
-            )
+            type_errors.append(f"{fname}: expected {ftype}, got {type(body[fname]).__name__}")
     if type_errors:
         return CheckResult(
             endpoint=endpoint.name,

@@ -1,5 +1,4 @@
 import pytest
-
 from schemalock.config import ConfigError, parse_config
 
 

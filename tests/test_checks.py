@@ -1,5 +1,4 @@
 import httpx
-
 from schemalock.checks import Outcome
 from schemalock.checks.auth import check_auth_required
 from schemalock.checks.error_envelope import check_error_envelope
@@ -13,6 +12,7 @@ def make_response(status_code: int, json_body=None) -> httpx.Response:
 
 
 # --- status_patterns ---
+
 
 def test_status_pass_on_exact_match():
     ep = Endpoint(name="e", method="GET", path="/x", expect_status=200)
@@ -83,6 +83,7 @@ def test_envelope_fail_on_non_json_body():
 
 
 # --- auth ---
+
 
 def _client_with_handler(handler):
     transport = httpx.MockTransport(handler)

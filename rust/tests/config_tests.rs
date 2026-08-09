@@ -150,3 +150,42 @@ endpoints:
     let cfg = parse(yaml).expect("should parse");
     assert_eq!(cfg.endpoints[0].resolved_path(), "/escrows/esc_123");
 }
+
+#[test]
+fn accepts_object_body() {
+    let yaml = r#"
+name: "Test"
+base_url: "http://localhost:8000"
+endpoints:
+  - name: create_escrow
+    method: POST
+    path: /escrows
+    body:
+      amount: 100
+    expect:
+      status: 201
+"#;
+    let cfg = parse(yaml).expect("should parse");
+    assert!(cfg.endpoints[0].body.is_some());
+}
+
+#[test]
+fn rejects_non_object_body_matches_python() {
+    let yaml = r#"
+name: "Test"
+base_url: "http://localhost:8000"
+endpoints:
+  - name: bad_body
+    method: POST
+    path: /escrows
+    body: [1, 2, 3]
+    expect:
+      status: 201
+"#;
+    let err = parse(yaml).unwrap_err();
+    assert!(
+        err.0.contains("body: expected a mapping"),
+        "unexpected error: {}",
+        err.0
+    );
+}

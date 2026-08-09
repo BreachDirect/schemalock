@@ -61,9 +61,7 @@ def _require(d: Any, key: str, path: str, expected_type=None):
         raise ConfigError(f"{path}.{key}: missing required field")
     value = d[key]
     if expected_type is not None and not isinstance(value, expected_type):
-        raise ConfigError(
-            f"{path}.{key}: expected {expected_type}, got {type(value).__name__}"
-        )
+        raise ConfigError(f"{path}.{key}: expected {expected_type}, got {type(value).__name__}")
     return value
 
 
@@ -87,7 +85,8 @@ def _parse_error_envelopes(raw: Any, path: str) -> dict[str, ErrorEnvelope]:
         for fname, ftype in field_types.items():
             if ftype not in VALID_TYPES:
                 raise ConfigError(
-                    f"{path}.{name}.field_types.{fname}: '{ftype}' is not one of {sorted(VALID_TYPES)}"
+                    f"{path}.{name}.field_types.{fname}: '{ftype}' is not one of "
+                    f"{sorted(VALID_TYPES)}"
                 )
         envelopes[name] = ErrorEnvelope(
             name=name, required_fields=list(required_fields), field_types=dict(field_types)
@@ -160,9 +159,7 @@ def parse_config(raw: dict) -> Config:
     if not isinstance(raw_endpoints, list) or not raw_endpoints:
         raise ConfigError("endpoints: expected a non-empty list")
 
-    endpoints = [
-        _parse_endpoint(ep, i, envelopes) for i, ep in enumerate(raw_endpoints)
-    ]
+    endpoints = [_parse_endpoint(ep, i, envelopes) for i, ep in enumerate(raw_endpoints)]
 
     return Config(
         name=name,
@@ -175,7 +172,7 @@ def parse_config(raw: dict) -> Config:
 
 def load_config(path: str) -> Config:
     try:
-        with open(path, "r", encoding="utf-8") as fh:
+        with open(path, encoding="utf-8") as fh:
             raw = yaml.safe_load(fh)
     except FileNotFoundError as e:
         raise ConfigError(f"config file not found: {path}") from e

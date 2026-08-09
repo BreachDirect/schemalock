@@ -4,13 +4,11 @@
 
 use crate::checks::{CheckResult, Outcome};
 use crate::config::Endpoint;
-use std::time::Duration;
 
 pub fn check_auth_required(
     endpoint: &Endpoint,
     agent: &ureq::Agent,
     base_url: &str,
-    _timeout: Duration,
 ) -> CheckResult {
     let check_name = "auth_required".to_string();
     let url = format!(

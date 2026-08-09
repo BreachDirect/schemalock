@@ -99,7 +99,11 @@ pub fn check_error_envelope(
     }
 
     let mut type_errors = Vec::new();
-    for (fname, ftype) in &envelope.field_types {
+    // Iterate in sorted key order so detail strings are deterministic across
+    // runs and platforms (HashMap iteration order is not).
+    let mut fields: Vec<(&String, &String)> = envelope.field_types.iter().collect();
+    fields.sort_by(|a, b| a.0.cmp(b.0));
+    for (fname, ftype) in fields {
         if let Some(value) = obj.get(fname) {
             if !type_ok(value, ftype) {
                 type_errors.push(format!(

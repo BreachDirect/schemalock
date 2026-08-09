@@ -99,12 +99,7 @@ impl Runner {
             }
 
             if endpoint.auth_required {
-                results.push(check_auth_required(
-                    endpoint,
-                    &agent,
-                    &self.base_url,
-                    self.timeout,
-                ));
+                results.push(check_auth_required(endpoint, &agent, &self.base_url));
             }
         }
 

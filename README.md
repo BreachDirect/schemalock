@@ -127,9 +127,10 @@ matrices, and historical drift reporting — are tracked as issues in this repo.
 
 ## Wave alignment
 
-Built for **Stellar Wave 8** as a standalone, reusable open-source dependency —
-not tied to any single org's private codebase — so any Wave-funded backend can
-adopt it directly or as a CI step.
+Built for **Drips Stellar Wave 8** ([drips.network/wave/stellar](https://www.drips.network/wave/stellar)) as a
+standalone, reusable open-source dependency — not tied to any single org's
+private codebase — so any Wave-funded backend can adopt it directly or as a CI
+step.
 
 ## License
 

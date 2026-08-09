@@ -19,9 +19,7 @@ def render_console(config_name: str, results: list[CheckResult]) -> str:
     errored = sum(1 for r in results if r.outcome == Outcome.ERROR)
 
     lines.append("")
-    lines.append(
-        f"{len(results)} checks: {passed} passed, {failed} failed, {errored} errored"
-    )
+    lines.append(f"{len(results)} checks: {passed} passed, {failed} failed, {errored} errored")
     return "\n".join(lines)
 
 

@@ -195,6 +195,13 @@ fn parse_endpoint(
         .path
         .ok_or_else(|| err(&path, "path: missing required field"))?;
 
+    let body = match &raw.body {
+        Some(v) if !v.is_object() => {
+            return Err(err(&format!("{path}.body"), "expected a mapping"));
+        }
+        _ => raw.body,
+    };
+
     let expect = raw
         .expect
         .ok_or_else(|| err(&format!("{path}.expect.status"), "missing required field"))?;
@@ -218,7 +225,7 @@ fn parse_endpoint(
         name,
         method,
         path: ep_path,
-        body: raw.body,
+        body,
         auth_required: raw.auth_required.unwrap_or(false),
         expect_status,
         expect_envelope: envelope_name,
