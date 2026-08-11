@@ -41,7 +41,7 @@ jobs:
           sha256sum schemalock-x86_64-unknown-linux-gnu dist/*.tar.gz dist/*.whl > SHA256SUMS
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             schemalock-x86_64-unknown-linux-gnu
