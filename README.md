@@ -328,6 +328,7 @@ python3 scripts/parity_check.py --rust-binary rust/target/debug/schemalock
 - [`CHANGELOG.md`](./CHANGELOG.md) — release history.
 - [`CONTRIBUTING.md`](./CONTRIBUTING.md) — how to contribute.
 - [`SECURITY.md`](./SECURITY.md) — security policy.
+- [`DRIPS_WAVE.md`](./DRIPS_WAVE.md) — Stellar Wave Program application & appeal guide.
 - [`ROADMAP`](https://github.com/BreachDirect/schemalock/issues) — planned
   phases tracked as issues (OpenAPI checks, auth matrices, drift reporting).
 
