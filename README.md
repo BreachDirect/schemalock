@@ -7,7 +7,6 @@
 [![Python](https://img.shields.io/badge/python-3.9+-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![Rust](https://img.shields.io/badge/rust-1.86+-orange?logo=rust&logoColor=white)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue)](#license)
-[![PyPI](https://img.shields.io/badge/pypi-schemalock-blue)](https://pypi.org/)
 
 Stellar Wave backends (escrow services, marketplaces, trust/reputation APIs)
 keep shipping the same two classes of regression: **error response shapes
