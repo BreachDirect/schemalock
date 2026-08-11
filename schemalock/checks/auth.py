@@ -12,23 +12,37 @@ import httpx
 
 from schemalock.checks import CheckResult, Outcome
 from schemalock.config import Endpoint
+from schemalock.http import ResponseTooLarge, send_bounded
 
 ACCEPTABLE_UNAUTHENTICATED_STATUSES = {401, 403}
 
 
 def check_auth_required(
-    endpoint: Endpoint, client: httpx.Client, base_url: str, timeout: float
+    endpoint: Endpoint,
+    client: httpx.Client,
+    base_url: str,
+    timeout: float,
+    max_bytes: int = 10 * 1024 * 1024,
 ) -> CheckResult:
     check_name = "auth_required"
     url = base_url.rstrip("/") + endpoint.resolved_path()
 
     try:
-        response = client.request(
+        response = send_bounded(
+            client,
             endpoint.method,
             url,
             json=endpoint.body,
             headers={},  # deliberately no auth header
             timeout=timeout,
+            max_bytes=max_bytes,
+        )
+    except ResponseTooLarge as e:
+        return CheckResult(
+            endpoint=endpoint.name,
+            check=check_name,
+            outcome=Outcome.ERROR,
+            detail=f"unauthenticated request failed: {e}",
         )
     except httpx.HTTPError as e:
         return CheckResult(

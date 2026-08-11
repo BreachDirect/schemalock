@@ -9,6 +9,7 @@ from schemalock.checks.auth import check_auth_required
 from schemalock.checks.error_envelope import check_error_envelope
 from schemalock.checks.status_patterns import check_status
 from schemalock.config import Config
+from schemalock.http import DEFAULT_MAX_RESPONSE_BYTES, ResponseTooLarge, send_bounded
 
 
 def _parse_auth_header(raw: str | None) -> dict:
@@ -28,6 +29,7 @@ class Runner:
         base_url: str | None = None,
         auth_header: str | None = None,
         timeout: float = 10.0,
+        max_response_bytes: int | None = None,
     ):
         self.config = config
         self.base_url = base_url or config.base_url
@@ -35,6 +37,7 @@ class Runner:
             raise ValueError("base_url must be provided via --base-url or config.base_url")
         self.auth_header = auth_header or config.auth_header
         self.timeout = timeout
+        self.max_response_bytes = max_response_bytes or DEFAULT_MAX_RESPONSE_BYTES
 
     def run(self) -> list[CheckResult]:
         results: list[CheckResult] = []
@@ -45,13 +48,25 @@ class Runner:
                 url = self.base_url.rstrip("/") + endpoint.resolved_path()
 
                 try:
-                    response = client.request(
+                    response = send_bounded(
+                        client,
                         endpoint.method,
                         url,
                         json=endpoint.body,
                         headers=headers,
                         timeout=self.timeout,
+                        max_bytes=self.max_response_bytes,
                     )
+                except ResponseTooLarge as e:
+                    results.append(
+                        CheckResult(
+                            endpoint=endpoint.name,
+                            check="request",
+                            outcome=Outcome.ERROR,
+                            detail=f"response exceeded size limit: {e}",
+                        )
+                    )
+                    continue
                 except httpx.HTTPError as e:
                     results.append(
                         CheckResult(
@@ -71,7 +86,13 @@ class Runner:
 
                 if endpoint.auth_required:
                     results.append(
-                        check_auth_required(endpoint, client, self.base_url, self.timeout)
+                        check_auth_required(
+                            endpoint,
+                            client,
+                            self.base_url,
+                            self.timeout,
+                            max_bytes=self.max_response_bytes,
+                        )
                     )
 
         return results

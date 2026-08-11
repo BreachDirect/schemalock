@@ -99,3 +99,47 @@ def test_cli_fails_against_broken_mock_server(broken_mock_server, capsys):
     out = capsys.readouterr().out
     assert exit_code == 1
     assert "FAILED" in out
+
+
+def _config_without_auth(tmp_path) -> str:
+    import yaml
+
+    with open(os.path.join(REPO_ROOT, "examples", "escrow_api.yaml"), encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh)
+    raw.pop("auth_header", None)
+    path = tmp_path / "no_auth.yaml"
+    with open(path, "w", encoding="utf-8") as fh:
+        yaml.safe_dump(raw, fh)
+    return str(path)
+
+
+def test_auth_header_read_from_env(mock_server, tmp_path, capsys, monkeypatch):
+    config = _config_without_auth(tmp_path)
+    base = f"http://127.0.0.1:{mock_server}"
+
+    monkeypatch.setenv("SCHEMALOCK_AUTH_HEADER", "Authorization: Bearer wrong-token")
+    exit_code = main(["test", "--config", config, "--base-url", base])
+    assert exit_code == 1, "wrong token from env should fail the contract"
+
+    monkeypatch.setenv("SCHEMALOCK_AUTH_HEADER", "Authorization: Bearer valid-token")
+    exit_code = main(["test", "--config", config, "--base-url", base])
+    assert exit_code == 0, "valid token from env should pass the contract"
+
+
+def test_cli_flag_overrides_env(mock_server, tmp_path, capsys, monkeypatch):
+    config = _config_without_auth(tmp_path)
+    base = f"http://127.0.0.1:{mock_server}"
+
+    monkeypatch.setenv("SCHEMALOCK_AUTH_HEADER", "Authorization: Bearer wrong-token")
+    exit_code = main(
+        [
+            "test",
+            "--config",
+            config,
+            "--base-url",
+            base,
+            "--auth-header",
+            "Authorization: Bearer valid-token",
+        ]
+    )
+    assert exit_code == 0, "--auth-header flag should take precedence over env"

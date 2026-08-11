@@ -1,5 +1,10 @@
 # Security Policy
 
+SchemaLock is a CI contract checker. A bug here can make other Stellar
+backends ship broken or unauthenticated APIs, and the tool itself handles
+credentials and replays traffic against live targets — so the project's own
+security posture matters.
+
 ## Reporting a Vulnerability
 
 SchemaLock is a CI contract checker, so its own codebase must stay reliable — a
@@ -48,8 +53,10 @@ SchemaLock is designed to be safe to run in CI:
 
 In scope for security reports:
 
-- The Python package (`schemalock/`)
+- The Python package (`schemalock/`) — including the HTTP layer (`http.py`)
+  and the `scaffold` generator
 - The Rust crate (`rust/`)
+- The browser extension recorder (`browser-extension/`)
 - The config parser and check logic (both languages)
 - The parity gate (`scripts/parity_check.py`)
 - The CI workflow definitions in `.github/workflows/`
@@ -57,6 +64,32 @@ In scope for security reports:
 Out of scope: vulnerabilities in the backend APIs that SchemaLock *tests*
 (report those to the backend maintainers), and general issues in third-party
 dependencies already tracked by `cargo audit` / `pip-audit`.
+
+## Threat model & hardening
+
+SchemaLock runs contract checks against a **target it does not fully trust**
+(a live backend, possibly with a hostile load balancer or compromised
+upstream). It also handles credentials on the command line and in configs.
+
+| Concern | Mitigation |
+| --- | --- |
+| **Credentials leaked via redirects** | Redirects are never followed (Python: `follow_redirects=False`; Rust: `ureq` `redirects(0)`). An authenticated check cannot forward a token to a different origin via a 3xx response. |
+| **Memory exhaustion from huge responses** | Response bodies are read incrementally and capped at 10 MiB by default (`--max-response-bytes`). Exceeding the cap is reported as `ERROR`, not a crash. |
+| **Tokens in process listings / shell history** | `--auth-header` on argv is discouraged; pass `SCHEMALOCK_AUTH_HEADER` env var instead (flag > env > config precedence). |
+| **Secrets committed from captured traffic** | `schemalock scaffold` redacts values under sensitive keys (`token`, `password`, `api_key`, `authorization`, …) in emitted YAML. |
+| **Arbitrary code execution via config** | Config and capture files are parsed with `yaml.safe_load` / `json.load` — no YAML tags, no dynamic imports. |
+| **Recorder leaking token values** | The extension stores only a boolean "was this request authenticated?" flag — never header values. Response bodies capped at 256 KB, total capture budget 32 MB (oldest entries evicted). |
+| **Compromised CI token** | GitHub Actions workflows run with `permissions: contents: read` (least privilege). |
+| **TLS** | Python uses `httpx` with certificate verification; Rust builds with rustls. |
+
+### Known limitations
+
+- The Rust port reads response bodies into memory without a size cap (Python
+  only). A hostile target could consume unbounded RAM on a Rust-based CI run;
+  a bounded reader is planned to mirror Python.
+- The recorder extension requests broad `host_permissions` (`http(s)://*/*`)
+  so its auth probes can replay against any recorded target. Only install it on
+  developer machines; do not ship it to end users.
 
 ## Supported Versions
 

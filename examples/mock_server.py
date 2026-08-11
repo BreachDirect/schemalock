@@ -10,11 +10,27 @@ Run: uvicorn examples.mock_server:app --port 8000
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 from fastapi import FastAPI, Header, Request, Response
-from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, JSONResponse
 
 app = FastAPI(title="Mock Escrow API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+_DEMO_PAGE = Path(__file__).resolve().parent / "demo_app.html"
+
+
+@app.get("/demo")
+async def demo_page():
+    return FileResponse(_DEMO_PAGE)
 
 BREAK = os.environ.get("MOCK_BREAK_CONTRACT") == "1"
 
@@ -60,6 +76,22 @@ async def get_escrow(escrow_id: str, authorization: str | None = Header(default=
         return JSONResponse(
             status_code=status, content=error_envelope("NOT_FOUND", "Escrow not found")
         )
+    return escrow
+
+
+@app.patch("/escrows/{escrow_id}")
+async def settle_escrow(escrow_id: str, authorization: str | None = Header(default=None)):
+    """Demo helper: moves an escrow out of PENDING so DELETE hits the 409 path."""
+    if not is_authed(authorization):
+        return JSONResponse(
+            status_code=401, content=error_envelope("UNAUTHORIZED", "Missing or invalid token")
+        )
+    escrow = ESCROWS.get(escrow_id)
+    if escrow is None:
+        return JSONResponse(
+            status_code=404, content=error_envelope("NOT_FOUND", "Escrow not found")
+        )
+    escrow["status"] = "SETTLED"
     return escrow
 
 

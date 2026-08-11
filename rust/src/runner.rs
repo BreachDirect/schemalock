@@ -47,7 +47,12 @@ impl Runner {
     }
 
     pub fn run(&self) -> Result<Vec<CheckResult>, RunnerError> {
-        let agent = ureq::AgentBuilder::new().timeout(self.timeout).build();
+        // redirects(0): never follow 3xx responses, so an authenticated check
+        // cannot forward credentials to a different origin.
+        let agent = ureq::AgentBuilder::new()
+            .redirects(0)
+            .timeout(self.timeout)
+            .build();
         let mut results = Vec::new();
 
         let header_pair = match &self.auth_header {

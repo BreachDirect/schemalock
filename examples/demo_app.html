@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>SchemaLock Recorder — demo escrow frontend</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 760px; margin: 40px auto; padding: 0 16px; color: #1b2330; }
+    h1 { font-size: 20px; }
+    .bar { display: flex; align-items: center; gap: 16px; margin: 18px 0; }
+    label { font-size: 14px; }
+    button { padding: 8px 14px; border: 1px solid #c6ccd6; border-radius: 8px; background: #fff; cursor: pointer; font-size: 13px; }
+    button:hover { border-color: #4f8cff; }
+    #log { background: #0f1419; color: #e6e9f0; border-radius: 8px; padding: 12px; font: 12px/1.6 ui-monospace, monospace; height: 320px; overflow-y: auto; white-space: pre-wrap; }
+    .ok { color: #3fb96a; } .err { color: #e06161; } .auth { color: #e0a34e; }
+  </style>
+</head>
+<body>
+  <h1>SchemaLock Recorder — demo escrow frontend</h1>
+  <p>This page drives the bundled <code>examples/mock_server.py</code>. Turn on
+    <strong>Recording</strong> in the SchemaLock Recorder popup, then click a few buttons,
+    then <strong>Export capture.json</strong> and scaffold a contract:</p>
+  <pre>schemalock scaffold schemalock-capture.json --output schemalock.yaml</pre>
+
+  <div class="bar">
+    <label><input type="checkbox" id="auth" checked /> Send <code>Authorization: Bearer valid-token</code></label>
+  </div>
+
+  <div class="bar">
+    <button onclick="go('GET', '/escrows/esc_123')">GET esc_123</button>
+    <button onclick="go('GET', '/escrows/esc_missing')">GET missing (404)</button>
+    <button onclick="go('POST', '/escrows', {amount: 500})">POST create</button>
+    <button onclick="go('PATCH', '/escrows/esc_123')">PATCH settle</button>
+    <button onclick="go('DELETE', '/escrows/esc_123')">DELETE settled (409)</button>
+    <button onclick="go('POST', '/graphql', {query: '{ escrow { invalidField } }'})">GraphQL invalid (422)</button>
+    <button onclick="go('GET', '/health')">GET health</button>
+  </div>
+
+  <div id="log"># requests will appear here\n</div>
+
+  <script>
+    const logEl = document.getElementById("log");
+    function log(line, cls) {
+      const span = document.createElement("span");
+      span.className = cls || "";
+      span.textContent = line;
+      logEl.appendChild(span);
+      logEl.appendChild(document.createElement("br"));
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    async function go(method, path, body) {
+      const headers = {};
+      if (document.getElementById("auth").checked) headers["Authorization"] = "Bearer valid-token";
+      if (body) headers["Content-Type"] = "application/json";
+      try {
+        const res = await fetch(path, { method, headers, body: body ? JSON.stringify(body) : undefined });
+        const text = await res.text();
+        const cls = res.status >= 400 ? (res.status === 401 || res.status === 403 ? "auth" : "err") : "ok";
+        log(`${method} ${path} → ${res.status}${text ? " " + text.slice(0, 200) : ""}`, cls);
+      } catch (e) {
+        log(`${method} ${path} → ERROR ${e.message}`, "err");
+      }
+    }
+  </script>
+</body>
+</html>

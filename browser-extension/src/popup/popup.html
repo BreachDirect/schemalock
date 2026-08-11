@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="popup.css" />
+  <title>SchemaLock Recorder</title>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">🔒</span>
+      <span class="brand-name">SchemaLock&nbsp;Recorder</span>
+    </div>
+    <label class="switch" title="Record page network traffic">
+      <input type="checkbox" id="recording-toggle" />
+      <span class="slider"></span>
+      <span class="switch-label">Recording</span>
+    </label>
+  </header>
+
+  <section class="settings">
+    <label class="field">
+      <span>Only capture URLs matching (regex)</span>
+      <input type="text" id="filter-input" placeholder="e.g. 127\.0\.0\.1|myapi" spellcheck="false" />
+    </label>
+    <label class="field checkbox-field">
+      <input type="checkbox" id="success-bodies" />
+      <span>Capture 2xx response bodies too</span>
+    </label>
+  </section>
+
+  <section class="toolbar">
+    <span id="summary" class="summary">0 endpoints</span>
+    <span class="spacer"></span>
+    <button id="probe-all" class="ghost" title="Replay GET/HEAD requests without credentials to test auth boundaries">Probe GETs</button>
+    <button id="clear" class="ghost danger" title="Discard all captured traffic">Clear</button>
+  </section>
+
+  <section id="endpoints" class="endpoints"></section>
+
+  <footer class="footer">
+    <button id="export" class="primary">Export capture.json</button>
+    <p class="hint" id="hint">then run <code>schemalock scaffold capture.json --output schemalock.yaml</code></p>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>

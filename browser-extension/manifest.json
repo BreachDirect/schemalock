@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "SchemaLock Recorder",
+  "version": "0.1.0",
+  "description": "Capture live API traffic and scaffold a SchemaLock contract YAML from it.",
+  "minimum_chrome_version": "111",
+  "permissions": ["storage", "unlimitedStorage"],
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "background": {
+    "service_worker": "src/background/service-worker.js"
+  },
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_title": "SchemaLock Recorder"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["src/content/hook.js"],
+      "run_at": "document_start",
+      "all_frames": true,
+      "world": "MAIN"
+    },
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["src/content/recorder.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ]
+}
