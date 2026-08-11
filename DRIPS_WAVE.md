@@ -25,6 +25,10 @@ queue we are putting up for the program.
       Dependabot. All must stay green for merges.
 - [x] **Python/Rust parity gate** — `scripts/parity_check.py` asserts the two
       implementations produce **byte-identical** JSON reports on shared fixtures.
+- [x] **Two tagged, artifact-bearing releases** — `v0.1.0` (Phase 1) and
+      `v0.2.0` (Recorder + scaffold + security hardening), both built and
+      published by the `Release` workflow with Python wheels, sdist, Rust
+      binary, and checksums.
 - [x] **Bounty issue template** — `.github/ISSUE_TEMPLATE/drips_wave_task.md`.
 - [x] **Bounty queue** — 5 scoped issues with acceptance criteria (see §3),
       each labeled with a complexity (`trivial`/`medium`/`high`) + `drips-wave`.
@@ -50,9 +54,18 @@ queue we are putting up for the program.
 ## 2. Substantive changes since the previous application (appeal basis)
 
 The previous application was declined. Since then the following **meaningful,
-reviewable work** has landed on `main` — directly addressing the common grounds
-for repo rejection (no activity, thin docs, no quality gates, no open issue
-queue, unclear ecosystem relevance):
+reviewable work** has landed on `main`. If the concern was **low activity**,
+that concern is addressed directly: the project went from a single Phase 1
+commit to an actively-shipped tool in six weeks — **12 commits, 2 tagged
+releases (`v0.1.0`, `v0.2.0`), and a documented feature roadmap**, every
+commit CI-green.
+
+**Momentum at a glance** (all dates 2026):
+
+- Jul 7 — Phase 1 MVP shipped
+- Jul 18 — parallel Rust implementation
+- Aug 5–8 — CI quality gates, security audits, parity gate, Wave 8 branding
+- Aug 11 — SchemaLock Recorder + scaffold, repo hygiene revamp, **v0.2.0 released today**
 
 | Date | Change | Relevance |
 |---|---|---|
@@ -68,7 +81,9 @@ queue, unclear ecosystem relevance):
 
 Evidence of sustained activity: **10+ commits across Aug 5–11**, all on `main`,
 all CI-green, in a coherent direction tracked in `PRD.md` (§7 roadmap → GitHub
-issues).
+issues), and **two tagged releases with CI-built artifacts** — `v0.1.0` (Phase 1)
+and `v0.2.0` (Recorder + scaffold), proving a repeatable release process rather
+than a one-off dump.
 
 ## 3. Issue queue (ready to add to the program)
 
