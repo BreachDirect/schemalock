@@ -1,0 +1,20 @@
+# Default reviewers for changes to these paths.
+# NOTE: point these at a real team once one exists (e.g. @BreachDirect/maintainers).
+# See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/managing-code-owners
+
+* @ToryMic
+
+# Python implementation
+/schemalock/ @ToryMic
+/tests/ @ToryMic
+
+# Rust implementation
+/rust/ @ToryMic
+
+# CI and repo automation
+/.github/ @ToryMic
+
+# Documentation
+/README.md @ToryMic
+/PRD.md @ToryMic
+/ARCHITECTURE.md @ToryMic

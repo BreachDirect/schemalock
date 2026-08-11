@@ -23,7 +23,10 @@ Python engineers.
 
 ## Code of Conduct
 
-This project follows the [Contributor Covenant Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/). By participating you agree to uphold a welcoming, respectful environment for everyone.
+This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md)
+(v2.1). By participating you agree to uphold a welcoming, respectful environment
+for everyone. Reports of unacceptable behavior go to the maintainers via GitHub
+— see [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for details.
 
 ---
 
@@ -68,6 +71,20 @@ schemalock test --config examples/escrow_api.yaml --base-url http://127.0.0.1:80
 
 Set `MOCK_BREAK_CONTRACT=1` before starting the server to see SchemaLock fail
 against a deliberately broken contract.
+
+---
+
+## Communication
+
+- **Issues** — use the [issue tracker](https://github.com/BreachDirect/schemalock/issues)
+  for bugs, feature requests, and roadmap discussion. Pick the matching issue
+  template so we can triage faster.
+- **Security** — **never** file a public issue for a vulnerability. Use
+  [GitHub Security Advisories](../../security/advisories). See
+  [SECURITY.md](SECURITY.md).
+- **Questions** — open a discussion or tag a maintainer on the issue.
+
+Maintainers aim to respond to issues and PRs within **48 hours**.
 
 ---
 
@@ -200,6 +217,22 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 ### Scope (optional)
 
 Use the area affected: `py`, `rust`, `config`, `checks`, `cli`, `docs`, `ci`.
+
+### Signing (Developer Certificate of Origin)
+
+By contributing you certify the work is your own or used under an acceptable
+license (see the [DCO](https://developercertificate.org/)). We do not require
+signed-off commits, but we do ask that you commit changes **you** authored and
+attribute external work. See the GitHub docs on
+[signing commits with GPG/SSH](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits)
+for verified history.
+
+### Changelog & releases
+
+User-visible changes are recorded in [CHANGELOG.md](CHANGELOG.md) following
+[Keep a Changelog](https://keepachangelog.com/). Add an entry to the `[Unreleased]`
+section for notable changes (new checks, CLI flags, output formats). Releases are
+tagged `vX.Y.Z` from `main` when CI is green.
 
 ---
 
