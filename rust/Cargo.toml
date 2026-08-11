@@ -1,6 +1,6 @@
 [package]
 name = "schemalock"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 rust-version = "1.86"
 description = "Declarative API contract test harness for Stellar backends (Rust port of the Phase 1 Python implementation)"
