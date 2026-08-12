@@ -32,6 +32,7 @@ _DEMO_PAGE = Path(__file__).resolve().parent / "demo_app.html"
 async def demo_page():
     return FileResponse(_DEMO_PAGE)
 
+
 BREAK = os.environ.get("MOCK_BREAK_CONTRACT") == "1"
 
 ESCROWS = {
