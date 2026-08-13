@@ -55,7 +55,7 @@ jobs:
         run: cargo install cargo-deny@0.20.2 --locked
       - name: Run cargo deny
         working-directory: rust
-        run: cargo deny check --config ../deny.toml
+        run: cargo deny check
 
   test:
     runs-on: ubuntu-latest
