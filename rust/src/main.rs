@@ -1,5 +1,7 @@
 //! schemalock CLI — `schemalock test --config schemalock.yaml --base-url ...`
 
+#![forbid(unsafe_code)]
+
 use clap::{Args, Parser, Subcommand};
 use schemalock::config::load_config;
 use schemalock::report::{exit_code, render_console, render_json};
