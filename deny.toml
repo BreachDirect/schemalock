@@ -1,0 +1,34 @@
+# cargo-deny policy for schemalock — supply-chain checks beyond cargo-audit:
+# advisory/OSV vulnerabilities, license compliance, and yanked/duplicate deps.
+# Run locally with `cargo deny check`; enforced in CI by the Rust CI workflow.
+
+[advisories]
+yanked = "deny"
+unmaintained = "workspace"
+
+[licenses]
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-3-Clause",
+    "CDLA-Permissive-2.0",
+    "ISC",
+    "Unicode-3.0",
+    "Unlicense",
+]
+confidence-threshold = 0.8
+
+[bans]
+multiple-versions = "deny"
+wildcards = "deny"
+skip = [
+    { crate = "syn@2.0.119", reason = "synstructure (icu/idna via url → ureq) pins syn 2; clap/serde derive use syn 3" },
+    { crate = "windows-sys@0.52.0", reason = "ring pins windows-sys 0.52; the rest of the tree uses 0.61" },
+]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []
