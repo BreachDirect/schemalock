@@ -88,3 +88,81 @@ pub fn exit_code(results: &[CheckResult]) -> i32 {
         1
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::checks::{CheckResult, Outcome};
+
+    fn result(outcome: Outcome, detail: &str) -> CheckResult {
+        CheckResult {
+            endpoint: "/health".into(),
+            check: "status".into(),
+            outcome,
+            detail: detail.into(),
+        }
+    }
+
+    #[test]
+    fn console_has_pytest_style_lines() {
+        let results = vec![
+            result(Outcome::Pass, "200 OK"),
+            result(Outcome::Fail, "200 OK"),
+            result(Outcome::Error, "200 OK"),
+        ];
+        let out = render_console("demo", &results);
+        assert!(out.starts_with("SchemaLock — demo"));
+        assert!(out.contains("PASSED  /health :: status — 200 OK"));
+        assert!(out.contains("FAILED  /health :: status — 200 OK"));
+        assert!(out.contains("ERROR   /health :: status — 200 OK"));
+        assert!(out.contains("3 checks: 1 passed, 1 failed, 1 errored"));
+    }
+
+    #[test]
+    fn console_summary_counts() {
+        let results = vec![
+            result(Outcome::Pass, "ok"),
+            result(Outcome::Pass, "ok"),
+            result(Outcome::Error, "nope"),
+        ];
+        assert!(
+            render_console("demo", &results).contains("3 checks: 2 passed, 0 failed, 1 errored")
+        );
+    }
+
+    #[test]
+    fn json_report_summary_and_details() {
+        let results = vec![
+            result(Outcome::Pass, "ok"),
+            result(Outcome::Error, "refused"),
+        ];
+        let path =
+            std::env::temp_dir().join(format!("schemalock-report-{}.json", std::process::id()));
+        render_json("demo", &results, path.to_str().unwrap()).unwrap();
+        let text = std::fs::read_to_string(&path).unwrap();
+        let _ = std::fs::remove_file(&path);
+
+        let json: serde_json::Value = serde_json::from_str(&text).unwrap();
+        assert_eq!(json["config_name"], "demo");
+        assert_eq!(json["summary"]["total"], 2);
+        assert_eq!(json["summary"]["passed"], 1);
+        assert_eq!(json["summary"]["failed"], 0);
+        assert_eq!(json["summary"]["errored"], 1);
+        assert_eq!(json["results"][1]["outcome"], "ERROR");
+        assert_eq!(json["results"][1]["detail"], "refused");
+    }
+
+    #[test]
+    fn exit_code_zero_only_when_all_pass() {
+        assert_eq!(exit_code(&[result(Outcome::Pass, "ok")]), 0);
+        assert_eq!(
+            exit_code(&[result(Outcome::Pass, "ok"), result(Outcome::Fail, "no")]),
+            1
+        );
+        assert_eq!(
+            exit_code(&[result(Outcome::Pass, "ok"), result(Outcome::Error, "oops")]),
+            1
+        );
+        assert_eq!(exit_code(&[]), 0);
+    }
+}
