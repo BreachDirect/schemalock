@@ -10,7 +10,7 @@ use std::process::ExitCode;
 use std::time::Duration;
 
 #[derive(Parser)]
-#[command(name = "schemalock")]
+#[command(name = "schemalock", version)]
 struct Cli {
     #[command(subcommand)]
     command: Command,

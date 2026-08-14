@@ -68,6 +68,13 @@ def broken_mock_server():
         proc.wait(timeout=5)
 
 
+def test_cli_version_flag(capsys):
+    with pytest.raises(SystemExit) as excinfo:
+        main(["--version"])
+    assert excinfo.value.code == 0
+    assert "schemalock 0.2.0" in capsys.readouterr().out
+
+
 def test_cli_passes_against_correct_mock_server(mock_server, tmp_path, capsys):
     report_path = str(tmp_path / "report.json")
     exit_code = main(

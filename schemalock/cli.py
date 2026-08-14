@@ -6,6 +6,7 @@ import argparse
 import os
 import sys
 
+from schemalock import __version__
 from schemalock.config import ConfigError, load_config
 from schemalock.report import exit_code, render_console, render_json
 from schemalock.runner import Runner
@@ -14,6 +15,11 @@ from schemalock.scaffold import CaptureError, scaffold
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="schemalock")
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"schemalock {__version__}",
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     test_cmd = sub.add_parser("test", help="Run contract checks against a target")
