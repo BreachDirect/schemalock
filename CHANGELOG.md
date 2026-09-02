@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `schemalock test --json` in both CLIs — prints the JSON report to stdout
+  (single valid JSON document, same exit codes) for CI assertions without a
+  temp file; combinable with `--json-report` (issue #16).
 - Stellar Wave Program application materials: `DRIPS_WAVE.md` application &
   appeal guide, `drips_wave_task` issue template, and complexity labels
   (`trivial`/`medium`/`high`) applied across the bounty queue.

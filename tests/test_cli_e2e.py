@@ -150,3 +150,68 @@ def test_cli_flag_overrides_env(mock_server, tmp_path, capsys, monkeypatch):
         ]
     )
     assert exit_code == 0, "--auth-header flag should take precedence over env"
+
+
+def test_cli_json_stdout_is_single_valid_document(mock_server, capsys):
+    import json
+
+    exit_code = main(
+        [
+            "test",
+            "--config",
+            os.path.join(REPO_ROOT, "examples", "escrow_api.yaml"),
+            "--base-url",
+            f"http://127.0.0.1:{mock_server}",
+            "--json",
+        ]
+    )
+    captured = capsys.readouterr()
+    assert exit_code == 0, captured.out
+    payload = json.loads(captured.out)
+    assert payload["config_name"]
+    assert payload["summary"]["total"] == len(payload["results"])
+    assert captured.out.strip().startswith("{")
+    assert "checks:" not in captured.out
+
+
+def test_cli_json_stdout_matches_json_report_file(mock_server, tmp_path, capsys):
+    import json
+
+    report_path = str(tmp_path / "report.json")
+    exit_code = main(
+        [
+            "test",
+            "--config",
+            os.path.join(REPO_ROOT, "examples", "escrow_api.yaml"),
+            "--base-url",
+            f"http://127.0.0.1:{mock_server}",
+            "--json",
+            "--json-report",
+            report_path,
+        ]
+    )
+    captured = capsys.readouterr()
+    assert exit_code == 0, captured.out
+    with open(report_path, encoding="utf-8") as fh:
+        file_payload = json.load(fh)
+    assert json.loads(captured.out) == file_payload
+    assert "JSON report written to" in captured.err
+
+
+def test_cli_json_exit_code_on_broken_contract(broken_mock_server, capsys):
+    import json
+
+    exit_code = main(
+        [
+            "test",
+            "--config",
+            os.path.join(REPO_ROOT, "examples", "escrow_api.yaml"),
+            "--base-url",
+            f"http://127.0.0.1:{broken_mock_server}",
+            "--json",
+        ]
+    )
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    payload = json.loads(captured.out)
+    assert payload["summary"]["failed"] + payload["summary"]["errored"] > 0

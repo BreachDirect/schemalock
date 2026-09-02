@@ -71,6 +71,38 @@ def _run_python_cli(port: int, report_path: Path) -> subprocess.CompletedProcess
     )
 
 
+def _run_python_cli_json_stdout(port: int) -> subprocess.CompletedProcess:
+    return _run(
+        [
+            sys.executable,
+            "-m",
+            "schemalock.cli",
+            "test",
+            "--config",
+            str(CONFIG),
+            "--base-url",
+            f"{BASE_URL}:{port}",
+            "--json",
+        ],
+        cwd=REPO_ROOT,
+    )
+
+
+def _run_rust_cli_json_stdout(binary: Path, port: int) -> subprocess.CompletedProcess:
+    return _run(
+        [
+            str(binary),
+            "test",
+            "--config",
+            str(CONFIG),
+            "--base-url",
+            f"{BASE_URL}:{port}",
+            "--json",
+        ],
+        cwd=REPO_ROOT,
+    )
+
+
 def _run_rust_cli(binary: Path, port: int, report_path: Path) -> subprocess.CompletedProcess:
     return _run(
         [
@@ -117,6 +149,50 @@ def _compare(
         return False
 
     print(f"[ok] parity matches ({label})")
+    return True
+
+
+def _compare_json_stdout(
+    label: str,
+    py_proc: subprocess.CompletedProcess,
+    rust_proc: subprocess.CompletedProcess,
+) -> bool:
+    """Assert the `--json` stdout path: single valid JSON document per side,
+    byte-identical between implementations, identical exit codes (issue #16)."""
+    errors = []
+
+    if py_proc.returncode != rust_proc.returncode:
+        errors.append(
+            f"exit codes differ: python={py_proc.returncode}, rust={rust_proc.returncode}"
+        )
+
+    for side, proc in (("python", py_proc), ("rust", rust_proc)):
+        try:
+            json.loads(proc.stdout)
+        except json.JSONDecodeError as e:
+            errors.append(f"{side} --json stdout is not a single valid JSON document: {e}")
+
+    if py_proc.stdout != rust_proc.stdout:
+        errors.append("--json stdout output is not byte-identical")
+        errors.append(
+            "\n".join(
+                difflib.unified_diff(
+                    py_proc.stdout.splitlines(),
+                    rust_proc.stdout.splitlines(),
+                    "python",
+                    "rust",
+                    lineterm="",
+                )
+            )
+        )
+
+    if errors:
+        print(f"[FAIL] --json stdout mismatch ({label}):", file=sys.stderr)
+        for error in errors:
+            print(error, file=sys.stderr)
+        return False
+
+    print(f"[ok] --json stdout matches ({label})")
     return True
 
 
@@ -169,6 +245,44 @@ def main() -> int:
                 except subprocess.TimeoutExpired:
                     server.kill()
                     server.wait(timeout=5)
+
+    # --json stdout parity (issue #16): stdout must carry one valid JSON
+    # document, byte-identical across implementations, same exit codes.
+    for label, env_extra in (
+        ("correct contract", None),
+        ("broken contract", {"MOCK_BREAK_CONTRACT": "1"}),
+    ):
+        port = _free_port()
+        server_env = dict(os.environ)
+        if env_extra:
+            server_env.update(env_extra)
+
+        server = subprocess.Popen(
+            [
+                sys.executable,
+                "-m",
+                "uvicorn",
+                "examples.mock_server:app",
+                "--port",
+                str(port),
+            ],
+            cwd=REPO_ROOT,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            env=server_env,
+        )
+        try:
+            _wait_for_server(port)
+            py_proc = _run_python_cli_json_stdout(port)
+            rust_proc = _run_rust_cli_json_stdout(binary, port)
+            ok = _compare_json_stdout(label, py_proc, rust_proc) and ok
+        finally:
+            server.terminate()
+            try:
+                server.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                server.kill()
+                server.wait(timeout=5)
 
     return 0 if ok else 1
 
