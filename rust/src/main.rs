@@ -48,6 +48,10 @@ struct TestArgs {
     /// Per-request timeout in seconds
     #[arg(long, default_value_t = 10.0)]
     timeout: f64,
+
+    /// Abort a request whose response body exceeds this many bytes (default: 10 MiB)
+    #[arg(long = "max-response-bytes")]
+    max_response_bytes: Option<usize>,
 }
 
 fn main() -> ExitCode {
@@ -73,6 +77,7 @@ fn run_test(args: TestArgs) -> ExitCode {
         args.base_url,
         args.auth_header,
         Duration::from_secs_f64(args.timeout),
+        args.max_response_bytes,
     ) {
         Ok(r) => r,
         Err(e) => {

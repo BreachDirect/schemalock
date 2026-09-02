@@ -53,7 +53,9 @@ def _run(cmd, **kwargs) -> subprocess.CompletedProcess:
     return subprocess.run(cmd, capture_output=True, text=True, check=False, **kwargs)
 
 
-def _run_python_cli(port: int, report_path: Path) -> subprocess.CompletedProcess:
+def _run_python_cli(
+    port: int, report_path: Path, extra_args: list[str]
+) -> subprocess.CompletedProcess:
     return _run(
         [
             sys.executable,
@@ -66,6 +68,7 @@ def _run_python_cli(port: int, report_path: Path) -> subprocess.CompletedProcess
             f"{BASE_URL}:{port}",
             "--json-report",
             str(report_path),
+            *extra_args,
         ],
         cwd=REPO_ROOT,
     )
@@ -114,6 +117,7 @@ def _run_rust_cli(binary: Path, port: int, report_path: Path) -> subprocess.Comp
             f"{BASE_URL}:{port}",
             "--json-report",
             str(report_path),
+            *extra_args,
         ],
         cwd=REPO_ROOT,
     )
@@ -208,9 +212,14 @@ def main() -> int:
 
     ok = True
     with tempfile.TemporaryDirectory() as tmp:
-        for label, env_extra in (
-            ("correct contract", None),
-            ("broken contract", {"MOCK_BREAK_CONTRACT": "1"}),
+        for label, env_extra, extra_args in (
+            ("correct contract", None, []),
+            ("broken contract", {"MOCK_BREAK_CONTRACT": "1"}, []),
+            # --max-response-bytes parity (issue #14): a cap smaller than any
+            # mock body must produce identical oversized-response errors, and
+            # a generous cap must match the uncapped baseline exactly.
+            ("bounded oversized", None, ["--max-response-bytes", "10"]),
+            ("bounded within cap", None, ["--max-response-bytes", "10485760"]),
         ):
             port = _free_port()
             server_env = dict(os.environ)
@@ -233,10 +242,11 @@ def main() -> int:
             )
             try:
                 _wait_for_server(port)
-                py_report = Path(tmp) / f"python_{label.replace(' ', '_')}.json"
-                rust_report = Path(tmp) / f"rust_{label.replace(' ', '_')}.json"
-                py_proc = _run_python_cli(port, py_report)
-                rust_proc = _run_rust_cli(binary, port, rust_report)
+                slug = label.replace(" ", "_").replace(":", "_")
+                py_report = Path(tmp) / f"python_{slug}.json"
+                rust_report = Path(tmp) / f"rust_{slug}.json"
+                py_proc = _run_python_cli(port, py_report, extra_args)
+                rust_proc = _run_rust_cli(binary, port, rust_report, extra_args)
                 ok = _compare(label, py_report, rust_report, py_proc, rust_proc) and ok
             finally:
                 server.terminate()
