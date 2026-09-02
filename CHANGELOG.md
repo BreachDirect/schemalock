@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Rust port: `--max-response-bytes` response body cap (default 10 MiB),
+  closing the parity gap with the Python implementation — oversized
+  responses now produce the same `response exceeded size limit` error
+  detail and exit code in both implementations (issue #14).
 - Stellar Wave Program application materials: `DRIPS_WAVE.md` application &
   appeal guide, `drips_wave_task` issue template, and complexity labels
   (`trivial`/`medium`/`high`) applied across the bounty queue.
