@@ -102,3 +102,32 @@ fn fails_against_broken_mock_server() {
     assert_eq!(code, 1, "expected failure, got output:\n{output}");
     assert!(output.contains("FAILED"), "{output}");
 }
+
+#[test]
+fn errors_when_response_exceeds_max_response_bytes() {
+    // Every mock response body is larger than 10 bytes, so each request must
+    // be reported as an error and the run must fail (exit 1) — mirroring
+    // Python's ResponseTooLarge handling (issue #14).
+    let server = MockServer::start(false);
+    let base_url = format!("http://127.0.0.1:{}", server.port);
+    let (code, output) = run_schemalock(&base_url, &["--max-response-bytes", "10"]);
+    assert_eq!(
+        code, 1,
+        "expected failure for oversized responses, got output:\n{output}"
+    );
+    assert!(output.contains("response exceeded size limit:"), "{output}");
+    assert!(
+        output.contains(", 10)"),
+        "detail should report the cap: {output}"
+    );
+}
+
+#[test]
+fn passes_when_responses_within_max_response_bytes() {
+    // Same run with a generous cap: identical to the uncapped baseline.
+    let server = MockServer::start(false);
+    let base_url = format!("http://127.0.0.1:{}", server.port);
+    let (code, output) = run_schemalock(&base_url, &["--max-response-bytes", "10485760"]);
+    assert_eq!(code, 0, "expected success, got output:\n{output}");
+    assert!(output.contains("12 checks: 12 passed"), "{output}");
+}

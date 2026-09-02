@@ -4,11 +4,13 @@
 
 use crate::checks::{CheckResult, Outcome};
 use crate::config::Endpoint;
+use std::io::Read;
 
 pub fn check_auth_required(
     endpoint: &Endpoint,
     agent: &ureq::Agent,
     base_url: &str,
+    max_response_bytes: usize,
 ) -> CheckResult {
     let check_name = "auth_required".to_string();
     let url = format!(
@@ -38,6 +40,20 @@ pub fn check_auth_required(
     };
 
     let status = response.status();
+
+    // Drain the body with the same cap the Python `send_bounded` helper uses;
+    // an oversized response errors here exactly like Python's
+    // `ResponseTooLarge` on the auth path (including the detail format).
+    let mut buf: Vec<u8> = Vec::new();
+    let mut reader = response.into_reader().take(max_response_bytes as u64 + 1);
+    if reader.read_to_end(&mut buf).is_ok() && buf.len() > max_response_bytes {
+        return CheckResult {
+            endpoint: endpoint.name.clone(),
+            check: check_name,
+            outcome: Outcome::Error,
+            detail: format!("unauthenticated request failed: ('{url}', {max_response_bytes})"),
+        };
+    }
 
     if status == 401 || status == 403 {
         return CheckResult {
