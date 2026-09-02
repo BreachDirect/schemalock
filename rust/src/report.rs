@@ -55,7 +55,9 @@ struct JsonReport<'a> {
     results: &'a [CheckResult],
 }
 
-pub fn render_json(config_name: &str, results: &[CheckResult], path: &str) -> std::io::Result<()> {
+/// Serialize the report exactly once; shared by the file writer and the
+/// `--json` stdout path so both emit byte-identical payloads (issue #16).
+pub fn report_json_string(config_name: &str, results: &[CheckResult]) -> String {
     let summary = Summary {
         total: results.len(),
         passed: results
@@ -76,7 +78,11 @@ pub fn render_json(config_name: &str, results: &[CheckResult], path: &str) -> st
         summary,
         results,
     };
-    let json = serde_json::to_string_pretty(&report).expect("serialize report");
+    serde_json::to_string_pretty(&report).expect("serialize report")
+}
+
+pub fn render_json(config_name: &str, results: &[CheckResult], path: &str) -> std::io::Result<()> {
+    let json = report_json_string(config_name, results);
     let mut file = File::create(path)?;
     file.write_all(json.as_bytes())
 }
@@ -164,5 +170,17 @@ mod tests {
             1
         );
         assert_eq!(exit_code(&[]), 0);
+    }
+
+    #[test]
+    fn json_string_matches_file_contents() {
+        let results = vec![result(Outcome::Pass, "ok"), result(Outcome::Fail, "bad")];
+        let serialized = report_json_string("demo", &results);
+        let path =
+            std::env::temp_dir().join(format!("schemalock-report-str-{}.json", std::process::id()));
+        render_json("demo", &results, path.to_str().unwrap()).unwrap();
+        let from_file = std::fs::read_to_string(&path).unwrap();
+        let _ = std::fs::remove_file(&path);
+        assert_eq!(serialized, from_file);
     }
 }

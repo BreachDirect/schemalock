@@ -23,7 +23,9 @@ def render_console(config_name: str, results: list[CheckResult]) -> str:
     return "\n".join(lines)
 
 
-def render_json(config_name: str, results: list[CheckResult], path: str) -> None:
+def report_json_string(config_name: str, results: list[CheckResult]) -> str:
+    """Serialize the report exactly once; shared by the file writer and the
+    ``--json`` stdout path so both emit byte-identical payloads."""
     payload = {
         "config_name": config_name,
         "summary": {
@@ -34,8 +36,12 @@ def render_json(config_name: str, results: list[CheckResult], path: str) -> None
         },
         "results": [r.to_dict() for r in results],
     }
+    return json.dumps(payload, indent=2)
+
+
+def render_json(config_name: str, results: list[CheckResult], path: str) -> None:
     with open(path, "w", encoding="utf-8") as fh:
-        json.dump(payload, fh, indent=2)
+        fh.write(report_json_string(config_name, results))
 
 
 def exit_code(results: list[CheckResult]) -> int:

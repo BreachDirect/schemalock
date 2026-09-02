@@ -8,7 +8,7 @@ import sys
 
 from schemalock import __version__
 from schemalock.config import ConfigError, load_config
-from schemalock.report import exit_code, render_console, render_json
+from schemalock.report import exit_code, render_console, render_json, report_json_string
 from schemalock.runner import Runner
 from schemalock.scaffold import CaptureError, scaffold
 
@@ -35,6 +35,12 @@ def build_parser() -> argparse.ArgumentParser:
         "in process listings and shell history).",
     )
     test_cmd.add_argument("--json-report", default=None, help="Write JSON report to this path")
+    test_cmd.add_argument(
+        "--json",
+        action="store_true",
+        help="Print the JSON report to stdout instead of the console summary "
+        "(combine with --json-report to also write the file)",
+    )
     test_cmd.add_argument(
         "--timeout", type=float, default=10.0, help="Per-request timeout in seconds"
     )
@@ -87,11 +93,19 @@ def main(argv=None) -> int:
             return 2
 
         results = runner.run()
-        print(render_console(config.name, results))
+        if args.json:
+            # Machine-readable mode: stdout carries exactly one JSON document,
+            # so the human summary is suppressed (issue #16).
+            print(report_json_string(config.name, results))
+        else:
+            print(render_console(config.name, results))
 
         if args.json_report:
             render_json(config.name, results, args.json_report)
-            print(f"\nJSON report written to {args.json_report}")
+            print(
+                f"\nJSON report written to {args.json_report}",
+                file=sys.stderr if args.json else sys.stdout,
+            )
 
         return exit_code(results)
 

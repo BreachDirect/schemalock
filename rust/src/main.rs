@@ -4,7 +4,7 @@
 
 use clap::{Args, Parser, Subcommand};
 use schemalock::config::load_config;
-use schemalock::report::{exit_code, render_console, render_json};
+use schemalock::report::{exit_code, render_console, render_json, report_json_string};
 use schemalock::runner::Runner;
 use std::process::ExitCode;
 use std::time::Duration;
@@ -39,6 +39,11 @@ struct TestArgs {
     /// Write JSON report to this path
     #[arg(long = "json-report")]
     json_report: Option<String>,
+
+    /// Print the JSON report to stdout instead of the console summary
+    /// (combine with --json-report to also write the file)
+    #[arg(long)]
+    json: bool,
 
     /// Per-request timeout in seconds
     #[arg(long, default_value_t = 10.0)]
@@ -84,14 +89,24 @@ fn run_test(args: TestArgs) -> ExitCode {
         }
     };
 
-    println!("{}", render_console(&config_name, &results));
+    if args.json {
+        // Machine-readable mode: stdout carries exactly one JSON document,
+        // so the human summary is suppressed (issue #16).
+        println!("{}", report_json_string(&config_name, &results));
+    } else {
+        println!("{}", render_console(&config_name, &results));
+    }
 
     if let Some(path) = &args.json_report {
         if let Err(e) = render_json(&config_name, &results, path) {
             eprintln!("failed to write JSON report: {e}");
             return ExitCode::from(2);
         }
-        println!("\nJSON report written to {path}");
+        if args.json {
+            eprintln!("\nJSON report written to {path}");
+        } else {
+            println!("\nJSON report written to {path}");
+        }
     }
 
     ExitCode::from(exit_code(&results) as u8)
