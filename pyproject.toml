@@ -20,7 +20,7 @@ dependencies = [
 dev = [
     "pytest>=8.0",
     "fastapi>=0.110",
-    "uvicorn>=0.29",
+    "uvicorn>=0.54.0",
     "ruff==0.16.6",
 ]
 
