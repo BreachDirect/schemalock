@@ -13,7 +13,7 @@ authors = [{ name = "BreachDirect" }]
 keywords = ["api", "contract-testing", "stellar", "ci", "testing"]
 dependencies = [
     "httpx>=0.27,<1.0",
-    "PyYAML>=6.0,<7.0",
+    "PyYAML>=6.0.3,<7.0",
 ]
 
 [project.optional-dependencies]
