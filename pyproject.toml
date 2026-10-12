@@ -19,7 +19,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
-    "fastapi>=0.110",
+    "fastapi>=0.143.0",
     "uvicorn>=0.29",
     "ruff==0.16.6",
 ]
